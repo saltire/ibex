@@ -8,6 +8,9 @@ public class GroundScript : MonoBehaviour {
 
 	public float centerHeight = 1;
 	public float edgeHeight = 5;
+	public float horizontalNoiseScale = 1;
+	public float verticalNoiseScale = .1f;
+	public bool relativeNoise;
 
 	void Start() {
 		CreateMesh();
@@ -20,9 +23,14 @@ public class GroundScript : MonoBehaviour {
 
 		for (int p = 0; p <= pointCount; p++) {
 			float x = p / (float)pointCount - .5f;
+			float curveHeight = (edgeHeight - centerHeight) * x * x;
+			float noiseHeight = (Mathf.PerlinNoise(x * horizontalNoiseScale, 0) - .5f) *
+				verticalNoiseScale;
+
 			points.Add(new Vector2(
 				transform.position.x + width * x,
-				centerHeight + (edgeHeight - centerHeight) * x * x));
+				centerHeight + curveHeight +
+					(relativeNoise ? curveHeight * (1 + noiseHeight) : noiseHeight)));
 		}
 
 		GetComponent<PolygonCollider2D>().points = points.ToArray();

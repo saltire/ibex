@@ -4,10 +4,10 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class MovementScript : MonoBehaviour {
-	public Transform[] frontFeet;
-	public Transform[] backFeet;
-	public Transform frontFeetMark;
-	public Transform backFeetMark;
+	public Transform frontLeftFoot;
+	public Transform frontRightFoot;
+	public Transform backLeftFoot;
+	public Transform backRightFoot;
 	public Collider2D ground;
 
 	public float speed = 0.05f;
@@ -44,10 +44,8 @@ public class MovementScript : MonoBehaviour {
 
 		// Move to the correct height and place the front and back feet marks using the slope.
 		transform.position = hitMid.point;
-		frontFeetMark.position = ground.ClosestPoint(
-			transform.position + slope * feetDistance / 2);
-		backFeetMark.position = ground.ClosestPoint(
-			transform.position - slope * feetDistance / 2);
+		Vector3 frontFeetMark = ground.ClosestPoint(transform.position + slope * feetDistance / 2);
+		Vector3 backFeetMark = ground.ClosestPoint(transform.position - slope * feetDistance / 2);
 
 		// Smoothly rotate toward the slope angle.
 		float currentAngle = transform.rotation.eulerAngles.z;
@@ -56,15 +54,15 @@ public class MovementScript : MonoBehaviour {
 			Mathf.SmoothDampAngle(currentAngle, targetAngle, ref angleVelocity, angleTime));
 
 		// Place the IK targets for each individual foot.
-		frontFeet[0].position = GetFootPosition(frontFeetMark, false);
-		frontFeet[1].position = GetFootPosition(frontFeetMark, true);
-		backFeet[0].position = GetFootPosition(backFeetMark, false);
-		backFeet[1].position = GetFootPosition(backFeetMark, true);
+		frontLeftFoot.position = GetFootPosition(frontFeetMark, false);
+		frontRightFoot.position = GetFootPosition(frontFeetMark, true);
+		backLeftFoot.position = GetFootPosition(backFeetMark, false);
+		backRightFoot.position = GetFootPosition(backFeetMark, true);
 	}
 
-	Vector3 GetFootPosition(Transform midpoint, bool altFoot) {
+	Vector3 GetFootPosition(Vector3 midpoint, bool altFoot) {
 		// Ping pong the foot's x position based on the player's overall x position.
-		float x = midpoint.position.x +
+		float x = midpoint.x +
 			(Mathf.PingPong(transform.position.x, stepLength) - stepLength / 2) * (altFoot ? -1 : 1);
 
 		// Set the foot's height at ground level.

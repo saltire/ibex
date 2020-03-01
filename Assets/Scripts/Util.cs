@@ -11,4 +11,8 @@ public class Util {
     }
     Debug.Log(str);
   }
+
+  public static float Mod(float x, float m) {
+    return (x % m + m) % m;
+  }
 }

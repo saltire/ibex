@@ -13,6 +13,7 @@ public class MovementScript : MonoBehaviour {
 	public float speed = 0.05f;
 	public float feetDistance = 1f;
 	public float stepLength = 0.25f;
+	public float stepHeight = 0.2f;
 
 	Vector3 slope = Vector3.right;
 	Vector2 inputVelocity;
@@ -20,6 +21,10 @@ public class MovementScript : MonoBehaviour {
 
 	public float angleTime = 0.1f;
 	public float angleAdjust = 0.9f;
+
+	float xPhase;
+	float yPhase;
+	bool altFootFwd;
 
 	public void OnMove(InputValue value) {
 		inputVelocity = value.Get<Vector2>();
@@ -53,21 +58,26 @@ public class MovementScript : MonoBehaviour {
 		transform.rotation = Quaternion.Euler(0, 0,
 			Mathf.SmoothDampAngle(currentAngle, targetAngle, ref angleVelocity, angleTime));
 
+		// Calculate some values for placing foot targets.
+		xPhase = Mathf.PingPong(transform.position.x, stepLength) - stepLength / 2;
+		yPhase = Mathf.PingPong(transform.position.x, stepLength / 2) / (stepLength / 2);
+		altFootFwd = Util.Mod(transform.position.x, (stepLength * 2)) >= stepLength;
+
 		// Place the IK targets for each individual foot.
 		frontLeftFoot.position = GetFootPosition(frontFeetMark, false);
 		frontRightFoot.position = GetFootPosition(frontFeetMark, true);
-		backLeftFoot.position = GetFootPosition(backFeetMark, false);
-		backRightFoot.position = GetFootPosition(backFeetMark, true);
+		backLeftFoot.position = GetFootPosition(backFeetMark, true);
+		backRightFoot.position = GetFootPosition(backFeetMark, false);
 	}
 
 	Vector3 GetFootPosition(Vector3 midpoint, bool altFoot) {
-		// Ping pong the foot's x position based on the player's overall x position.
-		float x = midpoint.x +
-			(Mathf.PingPong(transform.position.x, stepLength) - stepLength / 2) * (altFoot ? -1 : 1);
+		bool forward = altFoot == altFootFwd;
+
+		float x = midpoint.x + xPhase * (altFoot ? -1 : 1);
 
 		// Set the foot's height at ground level.
 		RaycastHit2D hit = Physics2D.Raycast(new Vector3(x, 100, 0), Vector2.down);
-		float y = hit.point.y;
+		float y = hit.point.y + (forward ? yPhase * stepHeight : 0);
 
 		return new Vector3(x, y, 0);
 	}
